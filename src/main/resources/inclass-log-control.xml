@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!--  로그를 저장하는 2가지 위치에 대해서 Appender 선언  -->
+
+    <!-- (0) Spring Boot 기본 콘솔 로그 출력을 그대로 유지하기! -->
+    <springProfile name="default">
+        <!--  CONSOLE & FILE appender 기본 정의 불러오기  -->
+        <include resource="org/springframework/boot/logging/logback/base.xml"/>
+    </springProfile>
+
+    <!-- (1) 콘솔 어펜더 (커스터마이징 연습) -->
+    <!--  appender 로그를 기록할 때 상세 설정을 담당하는 태그 (출력 및 저장)  -->
+    <!--  appender = LogHandler, Handler 등으로도 부름 (동작, 메서드)  -->
+    <!--    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">-->
+<!--            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">-->
+<!--                &lt;!&ndash; <pattern>%-5level %d{yy-MM-dd HH:mm:ss}[%thread] [%logger{0}:%line] - %msg%n</pattern> &ndash;&gt;-->
+<!--                <pattern>%-5level %d{yy-MM-dd HH:mm:ss} - %msg%n</pattern>-->
+<!--            </encoder>-->
+    <!--    </appender>-->
+
+    <!--  (2) 파일 어펜더 정의 (RollingFileAppender)  -->
+    <!--  테스트용 파일 어펜더 (root logger 에 적용해서 확인)  -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/spring-application.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/spring-application.%d{yyyy-MM-dd_HH-mm}.log</fileNamePattern>  <!-- minutely  -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%-5level %d{yy-MM-dd HH:mm:ss} - %msg%n</pattern>-->
+        </encoder>
+    </appender>
+
+    <appender name="LOGCONTROLLER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/logcontroller.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 롤링 주기를 아래와 같이 날짜 패턴 선언만으로 제어할 수 있음 (하나만 선택) -->
+<!--            <fileNamePattern>logs/logcontroller.%d{yyyy-MM}.log</fileNamePattern>  &lt;!&ndash; monthly  &ndash;&gt;-->
+<!--            <fileNamePattern>logs/logcontroller.%d{yyyy-MM-dd}.log</fileNamePattern>  &lt;!&ndash; daily  &ndash;&gt;-->
+<!--            <fileNamePattern>logs/logcontroller.%d{yyyy-MM-dd_HH}.log</fileNamePattern>  &lt;!&ndash; hourly  &ndash;&gt;-->
+            <fileNamePattern>logs/logcontroller.%d{yyyy-MM-dd_HH-mm}.log</fileNamePattern>  <!-- minutely  -->
+            <!-- 로그 보관 개수(기간) 정의 가능 -->
+            <maxHistory>30</maxHistory>
+            <!-- 로그 파일의 최대 용량 정의 가능 (용량이 먼저 차면 주기 도래와 관계없이 롤링) -->
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- root 는 기본 logger 임 -->
+    <root level="INFO">
+        <!--  CONSOLE 어펜더를 참조  -->
+        <appender-ref ref="CONSOLE"/>
+        <!--  FILE 로그도 함께 찍어서 향후 디버깅에 활용  -->
+        <appender-ref ref="FILE"/>
+    </root>
+
+    <!--  logger 는 로그 기록의 상위 설정 (기록 단위)  -->
+    <!--  logger 아래에 Handler 가 사용되는 구조로 파악  -->
+    <!--  logger 커스텀 선언  -->
+    <logger level="INFO"
+            name="ac.su.kdt.inclassloggingcontrol.controller.LogController"
+            additivity="false">  <!-- additivity 는 상위 패키지 로그 전파 여부  -->
+        <!--  logger 의 name 속성은 패키지명 또는 클래스명 Full Path 를 지정  -->
+        <appender-ref ref="LOGCONTROLLER"/>
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+</configuration>
