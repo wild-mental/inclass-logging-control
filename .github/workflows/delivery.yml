@@ -1,0 +1,35 @@
+name: Delivery to S3
+
+on:  # 이벤트 트리거
+  push:  # 푸시 또는 머지 발생 시
+    branches:
+      - release/**  # release/ 경로 아래의 브랜치에 푸시 또는 병합될 때 실행
+
+jobs:
+  build-and-delivery:
+    runs-on: ubuntu-latest  # 실행 환경 (Action 을 수행할 임시 서버 정의, 향후 특정 인스턴스로 변경 가능)
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build with Gradle
+        run: |
+          ./gradlew clean test bootJar
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2  # 사용할 AWS 리전
+
+      - name: Delivery to S3
+        run: |
+          aws s3 cp build/custom-libs/*.jar s3://sample-deploy-builds1/
