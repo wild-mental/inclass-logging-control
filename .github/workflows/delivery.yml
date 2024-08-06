@@ -13,17 +13,34 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Check for [NO_DLV] in commit message
+        id: check_no_dlv
+        run: |
+          COMMIT_MESSAGE=$(git log -1 --format='%B (%H)')
+          echo "Last Commit Message: ${COMMIT_MESSAGE}"  # 디버깅용 
+          if echo "${COMMIT_MESSAGE}" | grep -q "\[NO_DLV\]"; then
+            echo "NO_DLV=true" >> $GITHUB_ENV  # ~/.bashrc 에 등록하는 것과 같음
+            echo "NO_DLV set to true"  # 디버깅용
+          else
+            echo "NO_DLV=false" >> $GITHUB_ENV
+            echo "NO_DLV set to false"  # 디버깅용
+          fi
+        shell: bash
+
       - name: Set up JDK
+        if: env.NO_DLV != 'true'
         uses: actions/setup-java@v2
         with:
           distribution: 'temurin'
           java-version: '17'
 
       - name: Build with Gradle
+        if: env.NO_DLV != 'true'
         run: |
           ./gradlew clean test bootJar
 
       - name: Configure AWS credentials
+        if: env.NO_DLV != 'true'
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -31,5 +48,6 @@ jobs:
           aws-region: ap-northeast-2  # 사용할 AWS 리전
 
       - name: Delivery to S3
+        if: env.NO_DLV != 'true'
         run: |
           aws s3 cp build/custom-libs/*.jar s3://sample-deploy-builds1/
